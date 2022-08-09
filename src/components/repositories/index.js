@@ -1,9 +1,23 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import useGithub from '../../hooks/github-hooks';
 import RepositoryItem from '../repositories-item';
 import * as S from './styled'
 
 const Repositories = () => {
+    const {githubState, getUserRepos, getUserStarred} = useGithub();
+    const [hasUserForSearchForRepos, setHasUserForSearchForRepos] = useState(false);
+
+    useEffect(() => {
+        if(githubState.user.login) {
+            getUserRepos(githubState.user.login);
+            getUserStarred(githubState.user.login);
+        }
+        setHasUserForSearchForRepos(!!githubState.repositories)
+    }, [githubState.user.login])
+    
     return (
+        <>
+        {hasUserForSearchForRepos ?
     <S.WrapperTabs
     selectedTabClassName='is-selected'
     selectedTabPanelClassName='is-selected'
@@ -13,18 +27,30 @@ const Repositories = () => {
             <S.WrapperTab>Starred</S.WrapperTab>
         </S.WrapperTabList>
         <S.WrapperTabPanel>
-            <RepositoryItem 
-            name="app-ideas" 
-            linkToRepo="https://github.com/benits/app-ideas" 
-            fullname="benits/app-ideas"/>
+            <S.WrapperList>
+            {githubState.repositories.map((item) => (
+                <RepositoryItem
+                key={item.id} 
+                name={item.name} 
+                linkToRepo={item.html_url} 
+                fullname={item.full_name}/>
+            ))}
+            </S.WrapperList>
         </S.WrapperTabPanel>
         <S.WrapperTabPanel>
-        <RepositoryItem 
-            name="benits" 
-            linkToRepo="https://github.com/benits/benits" 
-            fullname="benits/benits"/>
+            <S.WrapperList>
+        {githubState.starred.map((item) => (
+                <RepositoryItem
+                key={item.id} 
+                name={item.name} 
+                linkToRepo={item.html_url} 
+                fullname={item.full_name}/>
+            ))}
+            </S.WrapperList>
         </S.WrapperTabPanel>
     </S.WrapperTabs>
+    : <></>}
+    </>
     )
     
 }
